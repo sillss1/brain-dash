@@ -113,7 +113,7 @@ export function lerLinhas(texto: string): Lido {
     const critico = /!\s*$/.test(l)
     if (critico) l = l.replace(/\s*!+\s*$/, '')
     const d = acharData(l)
-    if (d) out.prazos.push({ data: d.data, texto: limpar(d.resto) || '(sem texto)', critico })
+    if (d) out.prazos.push({ data: d.data, texto: limpar(d.resto) || '(no text)', critico })
     else if (critico && marcador) out.sem_data.push(limpar(l))
   }
   return out
@@ -133,14 +133,14 @@ export function lerJson(v: unknown): Lido {
       ? (v as Record<string, unknown>)
       : {}
   const lista = obj.prazos ?? obj.deadlines
-  if (!Array.isArray(lista)) throw new Error('o JSON não tem "prazos" nem "deadlines"')
+  if (!Array.isArray(lista)) throw new Error('the JSON has no "deadlines" (or "prazos") list')
   const prazos: Bruto[] = []
   for (const p of lista) {
     if (p === null || typeof p !== 'object') continue
     const r = p as Record<string, unknown>
     const d = acharData(String(r.data ?? r.date ?? ''))
     if (!d) continue
-    const texto = String(r.texto ?? r.text ?? r.title ?? '').trim() || '(sem texto)'
+    const texto = String(r.texto ?? r.text ?? r.title ?? '').trim() || '(no text)'
     prazos.push({ data: d.data, texto, critico: Boolean(r.critico ?? r.critical) })
   }
   return { prazos, sem_data: textos(obj.sem_data ?? obj.undated), avisos: textos(obj.avisos ?? obj.warnings) }
@@ -163,12 +163,14 @@ function diasEntre(de: string, ate: string): number {
   return Math.round((Date.parse(`${ate}T00:00:00Z`) - Date.parse(`${de}T00:00:00Z`)) / DIA_MS)
 }
 
-/** `15/10 3d`, `13/10 amanhã`, `12/10 HOJE`, `09/10 VENCIDO 3d`. */
+const MESES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+/** `Oct 15 3d`, `Oct 13 tomorrow`, `Oct 12 today`, `Oct 9 OVERDUE 3d`. */
 export function quando(data: string, dias: number): string {
-  const dm = `${data.slice(8, 10)}/${data.slice(5, 7)}`
-  if (dias < 0) return `${dm} VENCIDO ${-dias}d`
-  if (dias === 0) return `${dm} HOJE`
-  if (dias === 1) return `${dm} amanhã`
+  const dm = `${MESES[Number(data.slice(5, 7)) - 1] ?? '?'} ${Number(data.slice(8, 10))}`
+  if (dias < 0) return `${dm} OVERDUE ${-dias}d`
+  if (dias === 0) return `${dm} today`
+  if (dias === 1) return `${dm} tomorrow`
   return `${dm} ${dias}d`
 }
 

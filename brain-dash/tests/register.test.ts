@@ -8,66 +8,66 @@ import type { Radar } from '../types'
 
 const H = 3_600_000
 const texto = (f: Fila) => f.map(s => s.t).join('')
-// Meio-dia de domingo, 11 out 2026, no fuso da máquina: o "hoje" não depende de onde o teste corre.
+// Noon on Sunday, Oct 11 2026, in the machine's time zone: "today" does not depend on where the test runs.
 const AGORA = new Date(2026, 9, 11, 12, 0).getTime()
 
-// ---------------------------------------------------------------- projeções
+// ---------------------------------------------------------------- projections
 
-test('a janela de 5h projeta ao ritmo médio desde que abriu', () => {
+test('the 5-hour window projects at the average pace since it opened', () => {
   const reset = 10 * H
-  // a meio da janela (2,5 h decorridas) com 50 %: acaba nos 100 %, não esgota antes
+  // halfway through the window (2.5 h elapsed) at 50%: ends at 100%, does not run out early
   expect(projetar(50, reset, reset - 2.5 * H, 5 * H)).toEqual({ pct: 50, projetado: 100 })
-  // com 60 % a meio: 120 % no reset, esgota quando faltarem 40 pontos a 24 %/h = 1h40
+  // at 60% halfway: 120% at reset; runs out when the last 40 points go at 24%/h = 1h40
   const p = projetar(60, reset, reset - 2.5 * H, 5 * H)
   expect(Math.round(p.projetado ?? 0)).toBe(120)
   expect(p.esgotaEm).toBe(reset - 2.5 * H + (40 / 60) * 2.5 * H)
 })
 
-test('cedo demais na janela, ou sem reset, não projeta', () => {
-  expect(projetar(10, 5 * H, 0.1 * H, 5 * H)).toEqual({ pct: 10 }) // 2 % da janela decorrida
+test('too early in the window, or with no reset, it does not project', () => {
+  expect(projetar(10, 5 * H, 0.1 * H, 5 * H)).toEqual({ pct: 10 }) // 2% of the window elapsed
   expect(projetar(10, undefined, 0, 5 * H)).toEqual({ pct: 10 })
 })
 
-test('o ritmo do contexto só conta a subida desde a última compactação', () => {
+test('context pace only counts the growth since the last compaction', () => {
   expect(turnosAte([100_000, 120_000, 140_000], 140_000, 200_000)).toEqual({ porTurno: 20_000, turnos: 3 })
-  // a descida (compactação) corta a série: o ritmo é o de depois
+  // the drop (a compaction) cuts the series: the pace is the one after it
   expect(turnosAte([100_000, 150_000, 30_000, 40_000], 40_000, 200_000)).toEqual({ porTurno: 10_000, turnos: 16 })
-  expect(turnosAte([50_000], 50_000, 200_000)).toEqual({}) // um turno não é ritmo
+  expect(turnosAte([50_000], 50_000, 200_000)).toEqual({}) // one turn is not a pace
 })
 
-test('uma barra tem sempre a largura pedida: cheio, projeção, vazio e o marco', () => {
+test('a bar always has the width asked for: filled, projected, empty and the marker', () => {
   const b = barra(20, 0.5, 'success', 0.75, 0.9)
-  expect(texto(b)).toBe('██████████▒▒▒▒▒░░░│░') // marco a 0,9 de 20 células: índice 18
-  expect(texto(barra(10, 1.4, 'error', 2))).toBe('██████████') // passar dos 100 % não alarga
+  expect(texto(b)).toBe('██████████▒▒▒▒▒░░░│░') // marker at 0.9 of 20 cells: index 18
+  expect(texto(barra(10, 1.4, 'error', 2))).toBe('██████████') // going past 100% does not widen it
   expect(sparkline([0, 500_000, 1_000_000], 1_000_000, 3)).toBe('▁▅█')
 })
 
-// ---------------------------------------------------------------- fontes do radar
+// ---------------------------------------------------------------- radar sources
 
 const FICHEIRO = [
-  '# Prazos',
-  'Notas soltas sem data ficam de fora.',
-  '- [ ] 2026-10-13 Redes — trabalho 1 !',
-  '- [x] 2026-10-12 Já entregue',
-  '- 18/10/2026 Bases de dados: 1.ª entrega',
-  '2026-10-09 Feira de emprego — inscrição',
-  '- Orientador — email !',
-  '2026-02-30 data que não existe',
+  '# Deadlines',
+  'Notes without a date are left out.',
+  '- [ ] 2026-10-13 Networks — project 1 !',
+  '- [x] 2026-10-12 Already submitted',
+  '- 18/10/2026 Databases: first delivery',
+  '2026-10-09 Job fair — sign-up',
+  '- Email the advisor !',
+  '2026-02-30 a date that does not exist',
 ].join('\n')
 
-test('o formato simples: uma data por linha, ! no fim é crítico, caixas marcadas saem', () => {
+test('the plain format: one date per line, ! at the end is critical, ticked boxes are skipped', () => {
   expect(lerLinhas(FICHEIRO)).toEqual({
     prazos: [
-      { data: '2026-10-13', texto: 'Redes — trabalho 1', critico: true },
-      { data: '2026-10-18', texto: 'Bases de dados: 1.ª entrega', critico: false },
-      { data: '2026-10-09', texto: 'Feira de emprego — inscrição', critico: false },
+      { data: '2026-10-13', texto: 'Networks — project 1', critico: true },
+      { data: '2026-10-18', texto: 'Databases: first delivery', critico: false },
+      { data: '2026-10-09', texto: 'Job fair — sign-up', critico: false },
     ],
-    sem_data: ['Orientador — email'],
+    sem_data: ['Email the advisor'],
     avisos: [],
   })
 })
 
-test('o JSON aceita lista ou objeto, chaves em português ou inglês, e a saída do agenda.py', () => {
+test('JSON takes a list or an object, English or Portuguese keys, and extra fields', () => {
   const lista = [{ date: '2026-10-15', text: 'Report', critical: true }]
   expect(lerJson(lista).prazos).toEqual([{ data: '2026-10-15', texto: 'Report', critico: true }])
   const ingles = { deadlines: lista, undated: ['Call the lab'], warnings: ['2 to review'] }
@@ -76,27 +76,27 @@ test('o JSON aceita lista ou objeto, chaves em português ou inglês, e a saída
     sem_data: ['Call the lab'],
     avisos: ['2 to review'],
   })
-  // O agenda.py --json do AI-Brain traz campos a mais (dias, quando, por_espelhar...): ignoram-se.
-  const agenda = {
+  // Portuguese keys, with fields the mod does not use (dias, quando, por_espelhar...): ignored.
+  const portugues = {
     hoje: '2026-10-11',
-    prazos: [{ data: '2026-10-13', dias: 2, quando: '13/10 2d', texto: 'Redes [CRITICO]', critico: true }],
-    sem_data: ['Orientador — email'],
+    prazos: [{ data: '2026-10-13', dias: 2, quando: '13/10 2d', texto: 'Networks', critico: true }],
+    sem_data: ['Email the advisor'],
     por_espelhar: [{ data: null, texto: 'x' }],
   }
-  expect(lerFonte(JSON.stringify(agenda), '').prazos).toEqual([{ data: '2026-10-13', texto: 'Redes [CRITICO]', critico: true }])
-  expect(() => lerJson({ outra: 1 })).toThrow('prazos')
+  expect(lerFonte(JSON.stringify(portugues), '').prazos).toEqual([{ data: '2026-10-13', texto: 'Networks', critico: true }])
+  expect(() => lerJson({ other: 1 })).toThrow('deadlines')
 })
 
-test('a janela corta o longe e os vencidos antigos, mas um crítico vencido fica', () => {
+test('the window drops far and old overdue items, but a critical overdue one stays', () => {
   const r = montar(
     {
       prazos: [
-        { data: '2026-10-13', texto: 'perto', critico: false },
-        { data: '2026-11-30', texto: 'longe', critico: false },
-        { data: '2026-09-01', texto: 'vencido antigo', critico: false },
-        { data: '2026-09-01', texto: 'crítico antigo', critico: true },
-        { data: '2026-10-11', texto: 'hoje', critico: false },
-        { data: '2026-10-12', texto: 'amanhã', critico: false },
+        { data: '2026-10-13', texto: 'near', critico: false },
+        { data: '2026-11-30', texto: 'far', critico: false },
+        { data: '2026-09-01', texto: 'old overdue', critico: false },
+        { data: '2026-09-01', texto: 'old critical', critico: true },
+        { data: '2026-10-11', texto: 'same day', critico: false },
+        { data: '2026-10-12', texto: 'next day', critico: false },
       ],
       sem_data: [],
       avisos: [],
@@ -107,15 +107,15 @@ test('a janela corta o longe e os vencidos antigos, mas um crítico vencido fica
   )
   expect(r.hoje).toBe('2026-10-11')
   expect(r.prazos.map(p => `${p.quando} ${p.texto}`)).toEqual([
-    '01/09 VENCIDO 40d crítico antigo',
-    '11/10 HOJE hoje',
-    '12/10 amanhã amanhã',
-    '13/10 2d perto',
+    'Sep 1 OVERDUE 40d old critical',
+    'Oct 11 today same day',
+    'Oct 12 tomorrow next day',
+    'Oct 13 2d near',
   ])
-  expect(quando('2026-10-09', -2)).toBe('09/10 VENCIDO 2d')
+  expect(quando('2026-10-09', -2)).toBe('Oct 9 OVERDUE 2d')
 })
 
-test('o comando parte-se como numa shell simples, e as opções têm valores por omissão', () => {
+test('the command is split like a simple shell, and the options have defaults', () => {
   expect(partirComando(`python "scripts/my radar.py" --json ''`)).toEqual(['python', 'scripts/my radar.py', '--json', ''])
   expect(config({})).toEqual({ ficheiro: 'DEADLINES.md', comando: [], dias: 21 })
   expect(config({ radar_file: ' todo.md ', radar_command: 'make radar', radar_days: 400 })).toEqual({
@@ -125,50 +125,50 @@ test('o comando parte-se como numa shell simples, e as opções têm valores por
   })
 })
 
-// ---------------------------------------------------------------- desenho do radar
+// ---------------------------------------------------------------- drawing the radar
 
 const RADAR: Radar = montar(lerLinhas(FICHEIRO), AGORA, 21, 'DEADLINES.md')
 
-test('o calendário começa hoje e pinta cada dia com a pior cor que lá cai', () => {
+test('the calendar starts today and paints each day with the worst colour that falls on it', () => {
   const dias = calendario(RADAR, 21)
   expect(dias.length).toBe(21)
-  expect(dias[0]).toEqual({ iso: '2026-10-11', letra: 'D' }) // 11 out 2026 é domingo
-  expect(dias[2]).toEqual({ iso: '2026-10-13', letra: 'T', cor: 'error' }) // o crítico
-  expect(dias[7]).toEqual({ iso: '2026-10-18', letra: 'D', cor: 'suggestion' }) // longe e normal
-  expect(dias.filter(d => d.cor).length).toBe(2) // o vencido fica fora do calendário, não da lista
+  expect(dias[0]).toEqual({ iso: '2026-10-11', letra: 'S' }) // Oct 11 2026 is a Sunday
+  expect(dias[2]).toEqual({ iso: '2026-10-13', letra: 'T', cor: 'error' }) // the critical one
+  expect(dias[7]).toEqual({ iso: '2026-10-18', letra: 'S', cor: 'suggestion' }) // far and normal
+  expect(dias.filter(d => d.cor).length).toBe(2) // the overdue one is outside the calendar, not the list
 })
 
-test('a banda mostra os vencidos e o próximo prazo, a vermelho quando é crítico', () => {
+test('the band shows overdue items and the next deadline, red when it is critical', () => {
   expect(banda(null, [], RADAR, AGORA)).toEqual([
-    { texto: '1 vencido', cor: 'error' },
-    { texto: '13/10 2d Redes — trabalho 1 +1', cor: 'error' },
+    { texto: '1 overdue', cor: 'error' },
+    { texto: 'Oct 13 2d Networks — project 1 +1', cor: 'error' },
   ])
 })
 
-test('um radar que falhou diz que falhou e de onde, na banda e no painel', () => {
-  const partido: Radar = { ...RADAR, prazos: [], falha: 'saiu com 1: yaml', fonte: 'python radar.py' }
-  expect(banda(null, [], partido, AGORA)).toEqual([{ texto: 'RADAR FALHOU — /brain', cor: 'error' }])
+test('a radar that failed says so, and from where, in the band and in the pane', () => {
+  const partido: Radar = { ...RADAR, prazos: [], falha: 'exited with 1: yaml', fonte: 'python radar.py' }
+  expect(banda(null, [], partido, AGORA)).toEqual([{ texto: 'RADAR FAILED — /brain', cor: 'error' }])
   const tudo = painel(null, [], partido, AGORA, 50).map(texto).join('\n')
-  expect(tudo).toContain('RADAR FALHOU')
-  expect(tudo).toContain('saiu com 1')
-  expect(tudo).toContain('fonte: python radar.py')
+  expect(tudo).toContain('RADAR FAILED')
+  expect(tudo).toContain('exited with 1')
+  expect(tudo).toContain('source: python radar.py')
 })
 
-test('o painel não perde os vencidos, os críticos sem data, os avisos nem a fonte', () => {
-  const tudo = painel(null, [], { ...RADAR, avisos: ['2 por rever'] }, AGORA, 50).map(texto).join('\n')
-  expect(tudo).toContain('09/10 VENCIDO 2d')
-  expect(tudo).toContain('⚑ sem data: Orientador — email')
-  expect(tudo).toContain('⚑ 2 por rever')
-  expect(tudo).toContain('fonte: DEADLINES.md')
+test('the pane keeps overdue items, undated critical ones, warnings and the source', () => {
+  const tudo = painel(null, [], { ...RADAR, avisos: ['2 to review'] }, AGORA, 50).map(texto).join('\n')
+  expect(tudo).toContain('Oct 9 OVERDUE 2d')
+  expect(tudo).toContain('⚑ no date: Email the advisor')
+  expect(tudo).toContain('⚑ 2 to review')
+  expect(tudo).toContain('source: DEADLINES.md')
 })
 
-test('sem fonte de prazos, o painel ensina a criar uma', () => {
+test('with no deadline source, the pane explains how to add one', () => {
   const tudo = painel(null, [], null, AGORA, 50, 'todo.md').map(texto).join('\n')
-  expect(tudo).toContain('cria todo.md')
-  expect(tudo).toContain('2026-10-15 Entregar o relatório !')
+  expect(tudo).toContain('create todo.md')
+  expect(tudo).toContain('2026-10-15 Submit the report !')
 })
 
-// ---------------------------------------------------------------- no motor
+// ---------------------------------------------------------------- in the engine
 
 const BAND = {
   plugin: 'brain-dash',
@@ -190,7 +190,7 @@ const USO = {
   cost: { usd: 1.5 },
 }
 
-/** O mundo por baixo do mod. `ficheiro` null = não existe; `saida` null = o comando falha. */
+/** The world beneath the mod. `ficheiro` null = no file; `saida` null = the command fails. */
 type Mundo = {
   ficheiro: string | null
   mtime?: number
@@ -210,9 +210,9 @@ function motor(on: On, mundo: Mundo) {
   const clock = mock.clock(on, { now: AGORA })
   on('session.start', (_$, e) => ({ cwd: e.cwd }))
   on('ui.invalidate', () => ({ value: undefined }))
-  // A banda sem mais ninguém: o que o motor (e outros mods) desenhariam por baixo deste.
+  // The band with nobody else: what the engine (and other mods) would draw beneath this one.
   on('ui.render', ($, e) => $.ui.resolve(e).Box({}))
-  // Por omissão o terminal é estreito e o painel fica à espera de lugar: a banda mostra o resumo.
+  // By default the terminal is narrow and the pane waits for room: the band shows the summary.
   on('ui.open', () => ({ value: mundo.colocado ? { isPlaced: true } : { isPlaced: false, reason: 'narrow' } }))
   on('ui.close', () => ({ value: undefined }))
   on('ui.toast', (_$, e) => {
@@ -242,21 +242,21 @@ function motor(on: On, mundo: Mundo) {
 
 const INICIO = { surface: 'terminal', isInteractive: true, cwd: '/proj' } as const
 
-test('com o terminal estreito, a banda junta o uso e o DEADLINES.md em todas as superfícies', async ($, on) => {
+test('in a narrow terminal, the band joins usage and DEADLINES.md on every surface', async ($, on) => {
   const clock = motor(on, { ficheiro: FICHEIRO })
   await $.session.start(INICIO)
   await clock.settle()
   expect(lidos.length).toBe(1)
-  expect(lidos[0]).toMatch(/proj[\\/]DEADLINES\.md$/) // o motor normaliza o caminho ao sistema
+  expect(lidos[0]).toMatch(/proj[\\/]DEADLINES\.md$/) // the engine normalises the path to the OS
   for (const surface of ['terminal', 'desktop'] as const) {
     const ui = await $.ui.mount({ ...BAND, surface } as never)
     expect(await ui.find({ text: /ctx 42%/ })).toBeDefined()
-    expect(await ui.find({ text: /13\/10 2d Redes/ })).toBeDefined()
+    expect(await ui.find({ text: /Oct 13 2d Networks/ })).toBeDefined()
     await ui.unmount()
   }
 })
 
-test('com o painel ao lado do código, a banda cala-se; /brain fecha-o e ela volta', async ($, on) => {
+test('with the pane beside the code the band goes quiet; /brain closes it and the band returns', async ($, on) => {
   const clock = motor(on, { ficheiro: FICHEIRO, colocado: true })
   await $.session.start(INICIO)
   await clock.settle()
@@ -271,7 +271,7 @@ test('com o painel ao lado do código, a banda cala-se; /brain fecha-o e ela vol
 })
 
 test(
-  'com radar_command, o radar vem do comando e o ficheiro nem se lê',
+  'with radar_command, the radar comes from the command and the file is not read',
   { options: { radar_command: 'python scripts/radar.py --json' } },
   async ($, on) => {
     const saida = JSON.stringify({ deadlines: [{ date: '2026-10-14', text: 'Exam', critical: true }] })
@@ -281,69 +281,69 @@ test(
     expect(corridos).toEqual([['python', 'scripts/radar.py', '--json']])
     expect(lidos).toEqual([])
     const ui = await $.ui.mount({ ...BAND, surface: 'terminal' } as never)
-    expect(await ui.find({ text: /14\/10 3d Exam/ })).toBeDefined()
+    expect(await ui.find({ text: /Oct 14 3d Exam/ })).toBeDefined()
     await ui.unmount()
   },
 )
 
-test('um comando que falha faz a banda gritar em vez de ficar calada', { options: { radar_command: 'python radar.py' } }, async ($, on) => {
+test('a failing command makes the band shout instead of going quiet', { options: { radar_command: 'python radar.py' } }, async ($, on) => {
   const clock = motor(on, { ficheiro: null, saida: null })
   await $.session.start(INICIO)
   await clock.settle()
   const ui = await $.ui.mount({ ...BAND, surface: 'terminal' } as never)
-  expect(await ui.find({ text: /RADAR FALHOU/ })).toBeDefined()
+  expect(await ui.find({ text: /RADAR FAILED/ })).toBeDefined()
   await ui.unmount()
 })
 
-test('sem ficheiro nem comando não há radar: a banda mostra só o uso e o painel a dica', async ($, on) => {
+test('with no file and no command there is no radar: usage in the band, the hint in the pane', async ($, on) => {
   const clock = motor(on, { ficheiro: null, colocado: true })
   await $.session.start(INICIO)
   await clock.settle()
-  expect(corridos).toEqual([]) // nada a correr sem a pessoa o pedir
+  expect(corridos).toEqual([]) // nothing runs unless the person asks for it
   const pane = await $.ui.mount(PANE('terminal') as never)
-  expect(await pane.find({ text: /cria DEADLINES\.md/ })).toBeDefined()
+  expect(await pane.find({ text: /create DEADLINES\.md/ })).toBeDefined()
   await pane.unmount()
-  await $.command.run({ command: 'brain', args: '', origin: { kind: 'composer' } } as never) // fecha
+  await $.command.run({ command: 'brain', args: '', origin: { kind: 'composer' } } as never) // closes it
   await clock.settle()
   const ui = await $.ui.mount({ ...BAND, surface: 'terminal' } as never)
   expect(await ui.find({ text: /ctx 42%/ })).toBeDefined()
-  expect(await ui.find({ text: /Redes|RADAR/ })).toBeUndefined()
+  expect(await ui.find({ text: /Networks|RADAR/ })).toBeUndefined()
   await ui.unmount()
 })
 
-test('o painel desenha barras, o calendário e a lista, no terminal e no Desktop', async ($, on) => {
+test('the pane draws the bars, the calendar and the list, in the terminal and on Desktop', async ($, on) => {
   const clock = motor(on, { ficheiro: FICHEIRO, colocado: true })
   await $.session.start(INICIO)
-  await clock.settle() // o painel abre-se sozinho no arranque
+  await clock.settle() // the pane opens on its own at startup
   for (const surface of ['terminal', 'desktop'] as const) {
     const ui = await $.ui.mount(PANE(surface) as never)
-    expect(await ui.find({ text: /^CONTEXTO$/ })).toBeDefined()
-    expect(await ui.find({ text: /^█+$/ })).toBeDefined() // a barra do contexto
-    expect(await ui.find({ text: /JANELA 5H/ })).toBeDefined()
-    expect(await ui.find({ text: /■/ })).toBeDefined() // o calendário
-    expect(await ui.find({ text: /Redes — trabalho 1/ })).toBeDefined()
+    expect(await ui.find({ text: /^CONTEXT$/ })).toBeDefined()
+    expect(await ui.find({ text: /^█+$/ })).toBeDefined() // the context bar
+    expect(await ui.find({ text: /5-HOUR WINDOW/ })).toBeDefined()
+    expect(await ui.find({ text: /■/ })).toBeDefined() // the calendar
+    expect(await ui.find({ text: /Networks — project 1/ })).toBeDefined()
     expect(await ui.find({ key: 'atualizar' })).toBeDefined()
     await ui.unmount()
   }
 })
 
-test('o ficheiro editado a meio da sessão relê-se no fim do turno seguinte', async ($, on) => {
+test('a file edited mid-session is read again at the end of the next turn', async ($, on) => {
   const mundo: Mundo = { ficheiro: FICHEIRO, mtime: 0 }
   const clock = motor(on, mundo)
   on('turn.complete', () => ({ text: '' }))
   await $.session.start(INICIO)
   await clock.settle()
-  mundo.ficheiro = '2026-10-12 Prazo novo !'
+  mundo.ficheiro = '2026-10-12 New deadline !'
   mundo.mtime = AGORA + 60_000
   await clock.advance(120_000)
   await $.turn.complete({ answer: '', durationMs: 1, isAborted: false, turnId: 't', reason: 'answered' } as never)
   await clock.settle()
   const ui = await $.ui.mount({ ...BAND, surface: 'terminal' } as never)
-  expect(await ui.find({ text: /12\/10 amanhã Prazo novo/ })).toBeDefined()
+  expect(await ui.find({ text: /Oct 12 tomorrow New deadline/ })).toBeDefined()
   await ui.unmount()
 })
 
-test('só os turnos da conversa principal contam para o ritmo do contexto', async ($, on) => {
+test('only the main conversation turns count towards the context pace', async ($, on) => {
   let tokens = 400_000
   const uso = () => ({ ...USO, context: { ...USO.context, tokens, percent: tokens / 10_000 } })
   const clock = motor(on, { ficheiro: FICHEIRO, uso })
@@ -354,17 +354,17 @@ test('só os turnos da conversa principal contam para o ritmo do contexto', asyn
     $.turn.complete({ answer: '', durationMs: 1, isAborted: false, turnId: 't', reason: 'answered', ...(agentId ? { agentId } : {}) } as never)
   await fim()
   tokens = 420_000
-  await fim('worker-1') // um subagente: não pode entrar na série
+  await fim('worker-1') // a subagent: must not enter the series
   await fim()
   await clock.settle()
   const ui = await $.ui.mount({ ...BAND, surface: 'terminal' } as never)
-  // dois turnos principais, 400k → 420k: +20k por turno, ~29 turnos até encher 1M
-  expect(await ui.find({ text: /ctx 42% ~29 turnos/ })).toBeDefined()
+  // two main turns, 400k → 420k: +20k per turn, ~29 turns until 1M is full
+  expect(await ui.find({ text: /ctx 42% ~29 turns/ })).toBeDefined()
   await ui.unmount()
 })
 
-test('quando o painel não cabe, diz porquê e como o abrir, em vez de ficar calado', async ($, on) => {
-  const clock = motor(on, { ficheiro: FICHEIRO }) // terminal estreito
+test('when the pane does not fit, it says why and how to open it instead of staying quiet', async ($, on) => {
+  const clock = motor(on, { ficheiro: FICHEIRO }) // narrow terminal
   await $.session.start(INICIO)
   await clock.settle()
   expect(avisos.length).toBe(1)
@@ -372,7 +372,7 @@ test('quando o painel não cabe, diz porquê e como o abrir, em vez de ficar cal
   expect(avisos[0]).toContain('/brain')
 })
 
-test('com lugar, o painel abre sem aviso', async ($, on) => {
+test('with room, the pane opens without a toast', async ($, on) => {
   const clock = motor(on, { ficheiro: FICHEIRO, colocado: true })
   await $.session.start(INICIO)
   await clock.settle()

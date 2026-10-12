@@ -1,26 +1,30 @@
 {
   "name": "brain-dash",
-  "version": "0.2.0",
-  "description": "Contexto e limites de uso com projeção, e um radar de prazos (ficheiro ou comando), ao lado do código e acima do prompt",
+  "version": "0.3.0",
+  "description": "Context and plan limits with a burn-rate projection, plus a deadline radar from a plain file or your own command, beside the code and above the prompt",
   "author": { "name": "Francisco Antunes" },
+  "homepage": "https://github.com/sillss1/brain-dash",
+  "repository": "https://github.com/sillss1/brain-dash",
+  "license": "MIT",
+  "keywords": ["mod", "dashboard", "context", "rate-limits", "deadlines"],
   "types": "./types/index.d.ts",
   "userConfig": {
     "radar_file": {
       "type": "string",
-      "title": "Ficheiro de prazos",
-      "description": "Relativo à raiz do projeto. Uma linha por prazo (2026-10-15 Texto, ! no fim = crítico) ou JSON.",
+      "title": "Deadlines file",
+      "description": "Relative to the project root. One deadline per line (2026-10-15 Text, ! at the end = critical), or JSON.",
       "default": "DEADLINES.md"
     },
     "radar_command": {
       "type": "string",
-      "title": "Comando do radar",
-      "description": "Opcional; se preenchido, substitui o ficheiro. Corre na raiz do projeto, sem shell, e imprime linhas ou JSON.",
+      "title": "Radar command",
+      "description": "Optional; when set, replaces the file. Runs at the project root, without a shell, and prints lines or JSON.",
       "default": ""
     },
     "radar_days": {
       "type": "number",
-      "title": "Dias à frente",
-      "description": "Quantos dias o radar mostra (1 a 90).",
+      "title": "Days ahead",
+      "description": "How many days ahead the radar shows (1 to 90).",
       "default": 21
     }
   }

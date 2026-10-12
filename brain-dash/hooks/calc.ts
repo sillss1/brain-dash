@@ -4,9 +4,10 @@ import type { Radar, Uso } from '../types'
 
 export const JANELAS: Record<string, { nome: string; ms: number }> = {
   five_hour: { nome: '5h', ms: 5 * 3_600_000 },
-  seven_day: { nome: 'sem', ms: 7 * 86_400_000 },
+  seven_day: { nome: 'week', ms: 7 * 86_400_000 },
 }
-const DIAS = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb']
+const DIAS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+const MESES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 export type Cor = 'error' | 'warning'
 export type Linha = { texto: string; cor?: Cor }
@@ -80,7 +81,7 @@ export function banda(u: Uso | null, serie: readonly number[], r: Radar | null, 
   if (u?.pct !== undefined) {
     const { turnos } = turnosAte(serie, u.tokens, u.limiar ?? u.janela)
     seg.push({
-      texto: `ctx ${u.pct}%` + (turnos !== undefined ? ` ~${turnos} turnos` : ''),
+      texto: `ctx ${u.pct}%` + (turnos !== undefined ? ` ~${turnos} turns` : ''),
       cor: corContexto(u.pct, turnos),
     })
   }
@@ -89,14 +90,14 @@ export function banda(u: Uso | null, serie: readonly number[], r: Radar | null, 
     if (!j) continue
     const p = projetar(l.pct, l.reset, agora, j.ms)
     const proj = p.projetado !== undefined ? `→${Math.min(999, Math.round(p.projetado))}%` : ''
-    const esgota = p.esgotaEm !== undefined ? ` esgota ${hora(p.esgotaEm, agora)}` : ''
+    const esgota = p.esgotaEm !== undefined ? ` runs out ${hora(p.esgotaEm, agora)}` : ''
     seg.push({ texto: `${j.nome} ${Math.round(l.pct)}%${proj}${esgota}`, cor: corLimite(p) })
   }
   if (r?.falha) {
-    seg.push({ texto: 'RADAR FALHOU — /brain', cor: 'error' })
+    seg.push({ texto: 'RADAR FAILED — /brain', cor: 'error' })
   } else if (r) {
     const vencidos = r.prazos.filter(p => p.dias < 0).length
-    if (vencidos) seg.push({ texto: `${vencidos} vencido${vencidos > 1 ? 's' : ''}`, cor: 'error' })
+    if (vencidos) seg.push({ texto: `${vencidos} overdue`, cor: 'error' })
     const futuros = r.prazos.filter(p => p.dias >= 0)
     const prox = futuros[0]
     if (prox) {
@@ -117,7 +118,7 @@ export type Seg = { t: string; cor?: string; dim?: boolean; bold?: boolean }
 export type Fila = Seg[]
 
 const NIVEIS = '▁▂▃▄▅▆▇█'
-const LETRAS = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'] // dom..sáb
+const LETRAS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'] // Sun..Sat
 
 /** Junta células do mesmo estilo num só segmento: menos elementos, o mesmo desenho. */
 function juntar(celulas: Seg[]): Fila {
@@ -187,17 +188,17 @@ function blocoContexto(u: Uso, serie: readonly number[], w: number): Fila[] {
   const { porTurno, turnos } = turnosAte(serie, u.tokens, limite)
   const cor = corContexto(pct, turnos) ?? 'claude'
   const filas: Fila[] = [
-    titulo({ t: 'CONTEXTO', bold: true }, { t: `${pct}%`, cor, bold: true }, w),
+    titulo({ t: 'CONTEXT', bold: true }, { t: `${pct}%`, cor, bold: true }, w),
     barra(w, pct / 100, cor, 0, u.limiar !== undefined ? u.limiar / u.janela : undefined),
     [
       {
-        t: `${k(u.tokens ?? 0)} de ${k(u.janela)}` + (u.limiar !== undefined ? ` · │ compacta aos ${k(u.limiar)}` : ''),
+        t: `${k(u.tokens ?? 0)} of ${k(u.janela)}` + (u.limiar !== undefined ? ` · │ compacts at ${k(u.limiar)}` : ''),
         dim: true,
       },
     ],
   ]
   if (serie.length >= 2) {
-    const ritmo = turnos !== undefined && porTurno !== undefined ? ` +${k(porTurno)}/turno · ~${turnos} turnos` : ''
+    const ritmo = turnos !== undefined && porTurno !== undefined ? ` +${k(porTurno)}/turn · ~${turnos} turns` : ''
     const largura = Math.max(4, Math.min(serie.length, w - ritmo.length - 1))
     filas.push([{ t: sparkline(serie, limite, largura), cor }, { t: ritmo, dim: true }])
   }
@@ -213,53 +214,53 @@ function blocoJanela(l: { pct: number; reset?: number }, nome: string, ms: numbe
   const num = (x: number) => `${Math.round(x)}%`.padStart(5)
   const filas: Fila[] = [titulo({ t: nome, bold: true }, { t: reset, dim: true }, w)]
   if (tempo !== undefined) {
-    filas.push([{ t: 'tempo ', dim: true }, ...barra(bw, tempo, 'inactive'), { t: num(tempo * 100), dim: true }])
+    filas.push([{ t: 'time  ', dim: true }, ...barra(bw, tempo, 'inactive'), { t: num(tempo * 100), dim: true }])
   }
   filas.push([
-    { t: 'uso   ', dim: true },
+    { t: 'usage ', dim: true },
     ...barra(bw, l.pct / 100, cor, (p.projetado ?? 0) / 100),
     { t: num(l.pct), cor, bold: true },
   ])
   if (p.projetado !== undefined) {
-    const linha: Fila = [{ t: `      ▒ no reset, ao ritmo médio: ${Math.round(p.projetado)}%`, dim: true }]
-    if (p.esgotaEm !== undefined) linha.push({ t: ` · esgota ~${hora(p.esgotaEm, agora)}`, cor: 'error', bold: true })
+    const linha: Fila = [{ t: `      ▒ at reset, at the average pace: ${Math.round(p.projetado)}%`, dim: true }]
+    if (p.esgotaEm !== undefined) linha.push({ t: ` · runs out ~${hora(p.esgotaEm, agora)}`, cor: 'error', bold: true })
     filas.push(linha)
   } else {
-    filas.push([{ t: '      cedo demais na janela para projetar', dim: true }])
+    filas.push([{ t: '      too early in the window to project', dim: true }])
   }
   return filas
 }
 
-function blocoRadar(r: Radar, agora: number, w: number): Fila[] {
+export function blocoRadar(r: Radar, agora: number, w: number): Fila[] {
   if (r.falha) {
     return [
-      [{ t: 'RADAR FALHOU', cor: 'error', bold: true }],
+      [{ t: 'RADAR FAILED', cor: 'error', bold: true }],
       [{ t: r.falha, cor: 'error' }],
-      [{ t: 'Não assumas que não há prazos.', bold: true }],
-      [{ t: `fonte: ${r.fonte}`, dim: true }],
+      [{ t: "Don't assume there are no deadlines.", bold: true }],
+      [{ t: `source: ${r.fonte}`, dim: true }],
     ]
   }
   const dias = calendario(r, r.janela_dias || 21)
   const cw = w >= dias.length * 2 ? 2 : 1
   const pad = (s: string) => s.padEnd(cw)
   const filas: Fila[] = [
-    titulo({ t: `RADAR · ${dias.length} dias`, bold: true }, { t: `lido ${hora(r.lidoEm, agora)}`, dim: true }, w),
+    titulo({ t: `RADAR · ${dias.length} days`, bold: true }, { t: `read ${hora(r.lidoEm, agora)}`, dim: true }, w),
     juntar(dias.map((d, i) => (i === 0 ? { t: pad(d.letra), bold: true } : { t: pad(d.letra), dim: true }))),
     juntar(dias.map(d => (d.cor ? { t: pad('■'), cor: d.cor } : { t: pad('·'), dim: true }))),
-    [{ t: '▲ hoje', dim: true }],
+    [{ t: '▲ today', dim: true }],
     [],
   ]
   for (const p of r.prazos) {
     filas.push([
       { t: '● ', cor: corPrazoVisual(p.dias, p.critico) },
-      { t: `${p.quando.padEnd(16)} `, dim: p.dias > 4 && !p.critico },
+      { t: `${p.quando.padEnd(18)} `, dim: p.dias > 4 && !p.critico },
       { t: p.texto },
     ])
   }
-  if (r.prazos.length === 0) filas.push([{ t: `Nada nos próximos ${r.janela_dias} dias.`, dim: true }])
-  if (r.sem_data.length) filas.push([{ t: '⚑ sem data: ', cor: 'warning', bold: true }, { t: r.sem_data.join(' · ') }])
+  if (r.prazos.length === 0) filas.push([{ t: `Nothing in the next ${r.janela_dias} days.`, dim: true }])
+  if (r.sem_data.length) filas.push([{ t: '⚑ no date: ', cor: 'warning', bold: true }, { t: r.sem_data.join(' · ') }])
   for (const a of r.avisos) filas.push([{ t: '⚑ ', cor: 'warning' }, { t: a }])
-  filas.push([], [{ t: `fonte: ${r.fonte}`, dim: true }])
+  filas.push([], [{ t: `source: ${r.fonte}`, dim: true }])
   return filas
 }
 
@@ -267,10 +268,10 @@ function blocoRadar(r: Radar, agora: number, w: number): Fila[] {
 function semRadar(ficheiro: string): Fila[] {
   return [
     [{ t: 'RADAR', bold: true }],
-    [{ t: `Sem prazos: cria ${ficheiro} na raiz do projeto,`, dim: true }],
-    [{ t: 'uma linha por prazo (! no fim = crítico):', dim: true }],
-    [{ t: '  2026-10-15 Entregar o relatório !', cor: 'suggestion' }],
-    [{ t: 'ou aponta radar_command para um script teu.', dim: true }],
+    [{ t: `No deadlines yet: create ${ficheiro} at the`, dim: true }],
+    [{ t: 'project root, one per line (! = critical):', dim: true }],
+    [{ t: '  2026-10-15 Submit the report !', cor: 'suggestion' }],
+    [{ t: 'or point radar_command at your own script.', dim: true }],
   ]
 }
 
@@ -287,17 +288,17 @@ export function painel(
   ficheiro = 'DEADLINES.md',
 ): Fila[] {
   const d = new Date(agora)
-  const relogio = `${DIAS[d.getDay()]} ${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')} ${hora(agora, agora)}`
+  const relogio = `${DIAS[d.getDay()]} ${MESES[d.getMonth()]} ${d.getDate()} ${hora(agora, agora)}`
   const filas: Fila[] = [titulo({ t: 'BRAIN-DASH', cor: 'claude', bold: true }, { t: relogio, dim: true }, w), []]
   if (u?.tokens !== undefined) filas.push(...blocoContexto(u, serie, w), [])
   for (const l of u?.limites ?? []) {
     const j = JANELAS[l.kind]
-    if (j) filas.push(...blocoJanela(l, j.nome === '5h' ? 'JANELA 5H' : 'SEMANA', j.ms, agora, w), [])
+    if (j) filas.push(...blocoJanela(l, j.nome === '5h' ? '5-HOUR WINDOW' : 'WEEK', j.ms, agora, w), [])
   }
-  if (!u) filas.push([{ t: 'Uso: chega com a primeira resposta.', dim: true }], [])
-  else if (!u.limites.some(l => JANELAS[l.kind])) filas.push([{ t: 'Limites: sem leitura ainda.', dim: true }], [])
+  if (!u) filas.push([{ t: 'Usage: arrives with the first reply.', dim: true }], [])
+  else if (!u.limites.some(l => JANELAS[l.kind])) filas.push([{ t: 'Limits: no reading yet.', dim: true }], [])
   if (u?.usd !== undefined) {
-    filas.push([{ t: `sessão ${u.usd.toFixed(2)} $ equiv. API (na subscrição é quota)`, dim: true }], [])
+    filas.push([{ t: `session $${u.usd.toFixed(2)} API-equivalent (quota on a plan)`, dim: true }], [])
   }
   filas.push(...(r ? blocoRadar(r, agora, w) : semRadar(ficheiro)))
   return filas

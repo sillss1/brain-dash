@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="908.8" height="384" viewBox="0 0 908.8 384" font-family="'JetBrains Mono','SF Mono','Cascadia Mono',Menlo,Consolas,'DejaVu Sans Mono',monospace" font-size="14">
+<rect width="908.8" height="384" rx="12" fill="#0d1117"/>
+<rect x="0.5" y="0.5" width="907.8" height="383" rx="12" fill="none" stroke="#30363d"/>
+<circle cx="22" cy="20" r="6" fill="#ff5f57"/><circle cx="42" cy="20" r="6" fill="#febc2e"/><circle cx="62" cy="20" r="6" fill="#28c840"/>
+<rect x="20" y="40" width="406.4" height="324" rx="8" fill="#161b22" stroke="#30363d"/>
+<text x="34" y="61" fill="#8b949e" font-size="12">DEADLINES.md</text>
+<line x1="20" y1="72" x2="426.4" y2="72" stroke="#30363d"/>
+<text x="34" y="98.5" xml:space="preserve"><tspan fill="#d97757" font-weight="700"># Deadlines</tspan></text>
+<text x="34" y="118.5" xml:space="preserve"><tspan fill="#8b949e"></tspan></text>
+<text x="34" y="138.5" xml:space="preserve"><tspan fill="#8b949e">- [ ] </tspan><tspan fill="#58a6ff">2026-10-13</tspan><tspan fill="#e6edf3"> Release notes for v1.2</tspan><tspan fill="#ff6b6b" font-weight="700"> !</tspan></text>
+<text x="34" y="158.5" xml:space="preserve"><tspan fill="#8b949e">- [ ] </tspan><tspan fill="#58a6ff">2026-10-15</tspan><tspan fill="#e6edf3"> Thesis draft to advisor</tspan><tspan fill="#ff6b6b" font-weight="700"> !</tspan></text>
+<text x="34" y="178.5" xml:space="preserve"><tspan fill="#8b949e">- [ ] </tspan><tspan fill="#58a6ff">2026-10-20</tspan><tspan fill="#e6edf3"> Networks exam</tspan></text>
+<text x="34" y="198.5" xml:space="preserve"><tspan fill="#8b949e">- [ ] </tspan><tspan fill="#58a6ff">2026-10-23</tspan><tspan fill="#e6edf3"> Conference abstract</tspan></text>
+<text x="34" y="218.5" xml:space="preserve"><tspan fill="#8b949e">- [ ] </tspan><tspan fill="#58a6ff">30/10/2026</tspan><tspan fill="#e6edf3"> Renew passport</tspan></text>
+<text x="34" y="238.5" xml:space="preserve"><tspan fill="#8b949e">- [ ] </tspan><tspan fill="#58a6ff">2026-10-09</tspan><tspan fill="#e6edf3"> Book workshop flights</tspan></text>
+<text x="34" y="258.5" xml:space="preserve"><tspan fill="#8b949e">- [x] 2026-10-07 Grant report</tspan></text>
+<text x="34" y="278.5" xml:space="preserve"><tspan fill="#e6edf3">- Reply to reviewer 2</tspan><tspan fill="#ff6b6b" font-weight="700"> !</tspan></text>
+<text x="34" y="298.5" xml:space="preserve"><tspan fill="#8b949e"></tspan></text>
+<text x="34" y="318.5" xml:space="preserve"><tspan fill="#8b949e">Notes without a date are ignored.</tspan></text>
+<path d="M 440.4 192 h 26" stroke="#d97757" stroke-width="2.5"/>
+<path d="M 466.4 185 l 9 7 l -9 7 z" fill="#d97757"/>
+<rect x="482.4" y="40" width="406.4" height="324" rx="8" fill="#161b22" stroke="#30363d"/>
+<text x="496.4" y="61" fill="#8b949e" font-size="12">brain-dash · radar</text>
+<line x1="482.4" y1="72" x2="888.8" y2="72" stroke="#30363d"/>
+<text x="496.4 505.0 513.6 522.2 530.8 539.4" y="98.5" fill="#e6edf3" font-weight="700">RADAR </text>
+<circle cx="552.3" cy="94" r="1.4" fill="#8b949e"/>
+<text x="556.6 565.2 573.8 582.4 591.0 599.6 608.2 616.8" y="98.5" fill="#e6edf3" font-weight="700"> 21 days</text>
+<text x="788.8 797.4 806.0 814.6 823.2 831.8 840.4 849.0 857.6 866.2" y="98.5" fill="#8b949e">read 14:05</text>
+<text x="496.4 505.0" y="118.5" fill="#e6edf3" font-weight="700">M </text>
+<text x="513.6 522.2 530.8 539.4 548.0 556.6 565.2 573.8 582.4 591.0 599.6 608.2 616.8 625.4 634.0 642.6 651.2 659.8 668.4 677.0 685.6 694.2 702.8 711.4 720.0 728.6 737.2 745.8 754.4 763.0 771.6 780.2 788.8 797.4 806.0 814.6 823.2 831.8 840.4 849.0" y="118.5" fill="#8b949e">T W T F S S M T W T F S S M T W T F S S </text>
+<circle cx="500.7" cy="134" r="1.4" fill="#8b949e"/>
+<rect x="514.6" y="129" width="6.1" height="10" rx="2" fill="#ff6b6b"/>
+<circle cx="535.0999999999999" cy="134" r="1.4" fill="#8b949e"/>
+<rect x="549" y="129" width="6.1" height="10" rx="2" fill="#ff6b6b"/>
+<circle cx="569.4999999999999" cy="134" r="1.4" fill="#8b949e"/>
+<circle cx="586.6999999999999" cy="134" r="1.4" fill="#8b949e"/>
+<circle cx="603.8999999999999" cy="134" r="1.4" fill="#8b949e"/>
+<circle cx="621.0999999999999" cy="134" r="1.4" fill="#8b949e"/>
+<rect x="635" y="129" width="6.1" height="10" rx="2" fill="#58a6ff"/>
+<circle cx="655.4999999999999" cy="134" r="1.4" fill="#8b949e"/>
+<circle cx="672.6999999999999" cy="134" r="1.4" fill="#8b949e"/>
+<rect x="686.5999999999999" y="129" width="6.1" height="10" rx="2" fill="#58a6ff"/>
+<circle cx="707.0999999999999" cy="134" r="1.4" fill="#8b949e"/>
+<circle cx="724.3" cy="134" r="1.4" fill="#8b949e"/>
+<circle cx="741.4999999999999" cy="134" r="1.4" fill="#8b949e"/>
+<circle cx="758.6999999999999" cy="134" r="1.4" fill="#8b949e"/>
+<circle cx="775.8999999999999" cy="134" r="1.4" fill="#8b949e"/>
+<circle cx="793.0999999999999" cy="134" r="1.4" fill="#8b949e"/>
+<rect x="807" y="129" width="6.1" height="10" rx="2" fill="#58a6ff"/>
+<circle cx="827.5" cy="134" r="1.4" fill="#8b949e"/>
+<circle cx="844.6999999999999" cy="134" r="1.4" fill="#8b949e"/>
+<text x="496.4 505.0 513.6 522.2 530.8 539.4 548.0" y="158.5" fill="#8b949e">▲ today</text>
+<circle cx="500.7" cy="194" r="4" fill="#ff6b6b"/>
+<text x="513.6 522.2 530.8 539.4 548.0 556.6 565.2 573.8 582.4 591.0 599.6 608.2 616.8 625.4 634.0 642.6 651.2 659.8 668.4" y="198.5" fill="#e6edf3">Oct 9 OVERDUE 3d   </text>
+<text x="677.0 685.6 694.2 702.8 711.4 720.0 728.6 737.2 745.8 754.4 763.0 771.6 780.2 788.8 797.4 806.0 814.6 823.2 831.8 840.4 849.0" y="198.5" fill="#e6edf3">Book workshop flights</text>
+<circle cx="500.7" cy="214" r="4" fill="#ff6b6b"/>
+<text x="513.6 522.2 530.8 539.4 548.0 556.6 565.2 573.8 582.4 591.0 599.6 608.2 616.8 625.4 634.0 642.6 651.2 659.8 668.4" y="218.5" fill="#e6edf3">Oct 13 tomorrow    </text>
+<text x="677.0 685.6 694.2 702.8 711.4 720.0 728.6 737.2 745.8 754.4 763.0 771.6 780.2 788.8 797.4 806.0 814.6 823.2 831.8 840.4 849.0 857.6" y="218.5" fill="#e6edf3">Release notes for v1.2</text>
+<circle cx="500.7" cy="234" r="4" fill="#ff6b6b"/>
+<text x="513.6 522.2 530.8 539.4 548.0 556.6 565.2 573.8 582.4 591.0 599.6 608.2 616.8 625.4 634.0 642.6 651.2 659.8 668.4" y="238.5" fill="#e6edf3">Oct 15 3d          </text>
+<text x="677.0 685.6 694.2 702.8 711.4 720.0 728.6 737.2 745.8 754.4 763.0 771.6 780.2 788.8 797.4 806.0 814.6 823.2 831.8 840.4 849.0 857.6 866.2" y="238.5" fill="#e6edf3">Thesis draft to advisor</text>
+<circle cx="500.7" cy="254" r="4" fill="#58a6ff"/>
+<text x="513.6 522.2 530.8 539.4 548.0 556.6 565.2 573.8 582.4 591.0 599.6 608.2 616.8 625.4 634.0 642.6 651.2 659.8 668.4" y="258.5" fill="#8b949e">Oct 20 8d          </text>
+<text x="677.0 685.6 694.2 702.8 711.4 720.0 728.6 737.2 745.8 754.4 763.0 771.6 780.2" y="258.5" fill="#e6edf3">Networks exam</text>
+<circle cx="500.7" cy="274" r="4" fill="#58a6ff"/>
+<text x="513.6 522.2 530.8 539.4 548.0 556.6 565.2 573.8 582.4 591.0 599.6 608.2 616.8 625.4 634.0 642.6 651.2 659.8 668.4" y="278.5" fill="#8b949e">Oct 23 11d         </text>
+<text x="677.0 685.6 694.2 702.8 711.4 720.0 728.6 737.2 745.8 754.4 763.0 771.6 780.2 788.8 797.4 806.0 814.6 823.2 831.8" y="278.5" fill="#e6edf3">Conference abstract</text>
+<circle cx="500.7" cy="294" r="4" fill="#58a6ff"/>
+<text x="513.6 522.2 530.8 539.4 548.0 556.6 565.2 573.8 582.4 591.0 599.6 608.2 616.8 625.4 634.0 642.6 651.2 659.8 668.4" y="298.5" fill="#8b949e">Oct 30 18d         </text>
+<text x="677.0 685.6 694.2 702.8 711.4 720.0 728.6 737.2 745.8 754.4 763.0 771.6 780.2 788.8" y="298.5" fill="#e6edf3">Renew passport</text>
+<text x="496.4 505.0 513.6 522.2 530.8 539.4 548.0 556.6 565.2 573.8 582.4" y="318.5" fill="#f2b53a" font-weight="700">⚑ no date: </text>
+<text x="591.0 599.6 608.2 616.8 625.4 634.0 642.6 651.2 659.8 668.4 677.0 685.6 694.2 702.8 711.4 720.0 728.6 737.2 745.8" y="318.5" fill="#e6edf3">Reply to reviewer 2</text>
+<text x="496.4 505.0 513.6 522.2 530.8 539.4 548.0 556.6 565.2 573.8 582.4 591.0 599.6 608.2 616.8 625.4 634.0 642.6 651.2 659.8" y="358.5" fill="#8b949e">source: DEADLINES.md</text>
+</svg>

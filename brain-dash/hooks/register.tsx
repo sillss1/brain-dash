@@ -55,7 +55,7 @@ async function lerRadar($: EngineInterface): Promise<void> {
     const nome = cfg.comando.join(' ')
     try {
       const r = await $.process.run(cfg.comando, { cwd: await $.session.root(), timeoutMs: 20_000 })
-      if (r.exitCode !== 0) throw new Error(`saiu com ${r.exitCode}: ${r.stderr.trim().slice(0, 160)}`)
+      if (r.exitCode !== 0) throw new Error(`exited with ${r.exitCode}: ${r.stderr.trim().slice(0, 160)}`)
       const lido = lerFonte(r.stdout, '')
       await update($, radar, () => montar(lido, agora, cfg.dias, nome))
     } catch (err) {
@@ -119,7 +119,7 @@ async function abrir($: EngineInterface): Promise<void> {
   const r = await $.ui.open({ id: PANE, title: 'brain-dash', columns: LARGURA })
   await update($, aberto, () => r.isPlaced)
   if (!r.isPlaced) {
-    $.ui.toast(`brain-dash: o painel não coube (${r.reason}). /brain abre-o já; ao lado do código precisa de /tui fullscreen.`)
+    $.ui.toast(`brain-dash: the pane did not fit (${r.reason}). /brain opens it now; beside the code it needs /tui fullscreen.`)
   }
 }
 
@@ -129,7 +129,7 @@ export const register: Register = (on, options) => {
   on('session.start', async ($, e, next) => {
     await $.command.register({
       name: 'brain',
-      description: 'brain-dash: painel ao lado do código com contexto, limites com projeção e radar de prazos',
+      description: 'brain-dash: pane beside the code with context, plan limits with projection, and a deadline radar',
     })
     $.clock.every(RADAR_MS, () => void refrescarRadar($))
     // As barras de tempo e as projeções andam com o relógio: redesenhar a cada minuto.
@@ -227,7 +227,7 @@ export const register: Register = (on, options) => {
       <Box flexDirection="column">
         {filas.map(f => (f.length === 0 ? <Text> </Text> : <Text wrap="truncate-end">{f.map(seg)}</Text>))}
         <Text> </Text>
-        <Button key="atualizar" label="atualizar radar" hotkey="r" plain onPress={() => void refrescarRadar($)} />
+        <Button key="atualizar" label="refresh radar" hotkey="r" plain onPress={() => void refrescarRadar($)} />
       </Box>
     )
   })

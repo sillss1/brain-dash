@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="928.5999999999999" height="150" viewBox="0 0 928.5999999999999 150" font-family="'JetBrains Mono','SF Mono','Cascadia Mono',Menlo,Consolas,'DejaVu Sans Mono',monospace" font-size="14">
+<rect width="928.5999999999999" height="150" rx="12" fill="#0d1117"/>
+<rect x="0.5" y="0.5" width="927.5999999999999" height="149" rx="12" fill="none" stroke="#30363d"/>
+<circle cx="22" cy="20" r="6" fill="#ff5f57"/><circle cx="42" cy="20" r="6" fill="#febc2e"/><circle cx="62" cy="20" r="6" fill="#28c840"/>
+<text x="30" y="62" xml:space="preserve"><tspan fill="#8b949e">ctx 41% ~12 turns</tspan><tspan fill="#8b949e"> │ </tspan><tspan fill="#f2b53a">5h 46%→81%</tspan><tspan fill="#8b949e"> │ </tspan><tspan fill="#8b949e">week 31%→57%</tspan><tspan fill="#8b949e"> │ </tspan><tspan fill="#ff6b6b">1 overdue</tspan><tspan fill="#8b949e"> │ </tspan><tspan fill="#ff6b6b">Oct 13 tomorrow Release notes for v1.2 +4</tspan></text>
+<rect x="20" y="78" width="888.5999999999999" height="44" rx="8" fill="none" stroke="#30363d"/>
+<text x="36" y="105" fill="#8b949e">&gt;</text><rect x="52" y="94" width="2" height="13" fill="#e6edf3"/>
+</svg>
