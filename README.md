@@ -22,6 +22,14 @@ brain-dash keeps all of that in a pane next to the conversation. It doesn't only
 are. It also projects where you will be at your current pace, so you can wrap up, compact or
 switch tasks before you hit the wall.
 
+## See it work
+
+A real Claude Code session (2.1.296, Haiku), recorded from the terminal. Claude adds a deadline to
+`DEADLINES.md`, and the radar picks it up as soon as the turn ends. The usage numbers are the
+real ones at that moment. The only edit is the working-directory path, which was replaced.
+
+<img src="docs/images/demo.gif" alt="Recording of a real session: asked to add 'Demo day' on Oct 14 to DEADLINES.md, Claude edits the file, and when the turn ends the radar in the side pane shows 'Oct 14 2d Demo day' and marks the calendar" width="100%">
+
 ## What you get
 
 <img align="right" src="docs/images/pane.svg" alt="The brain-dash pane on its own" width="420">
