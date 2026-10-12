@@ -1,7 +1,27 @@
 {
   "name": "brain-dash",
-  "version": "0.1.0",
-  "description": "AI-Brain: contexto e limites de uso com projeção, e o radar de prazos do agenda.py, acima do prompt e em /brain",
+  "version": "0.2.0",
+  "description": "Contexto e limites de uso com projeção, e um radar de prazos (ficheiro ou comando), ao lado do código e acima do prompt",
   "author": { "name": "Francisco Antunes" },
-  "types": "./types/index.d.ts"
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "radar_file": {
+      "type": "string",
+      "title": "Ficheiro de prazos",
+      "description": "Relativo à raiz do projeto. Uma linha por prazo (2026-10-15 Texto, ! no fim = crítico) ou JSON.",
+      "default": "DEADLINES.md"
+    },
+    "radar_command": {
+      "type": "string",
+      "title": "Comando do radar",
+      "description": "Opcional; se preenchido, substitui o ficheiro. Corre na raiz do projeto, sem shell, e imprime linhas ou JSON.",
+      "default": ""
+    },
+    "radar_days": {
+      "type": "number",
+      "title": "Dias à frente",
+      "description": "Quantos dias o radar mostra (1 a 90).",
+      "default": 21
+    }
+  }
 }

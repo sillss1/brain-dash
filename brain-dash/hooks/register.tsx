@@ -1,16 +1,18 @@
-// brain-dash: um painel ao lado do código com o uso de tokens (barras e projeção) e o radar de
-// prazos do AI-Brain (calendário de 21 dias). Abre sozinho no arranque; /brain volta a abri-lo.
-// Com o painel fechado ou sem lugar (terminal estreito), o resumo fica numa banda acima do prompt.
+// brain-dash: um painel ao lado do código com o uso de tokens (barras e projeção) e um radar de
+// prazos (calendário e lista). Abre sozinho no arranque; /brain volta a abri-lo. Com o painel
+// fechado ou sem lugar (terminal estreito), o resumo fica numa banda acima do prompt.
 //
-// Alcance pequeno de propósito (research/tooling/2026-10-11-mods-do-claude-code-o-que-tocam-e-o-
-// que-vale-a-pena-para-o-a.md): não ouve tool.call nem prompt.submit, não vai à rede, e o único
-// processo que arranca é o `agenda.py --json` do próprio vault, que também não vai à rede.
+// Alcance pequeno de propósito: não ouve tool.call nem prompt.submit, não vai à rede e não escreve
+// ficheiros. Os prazos vêm de um ficheiro do projeto (DEADLINES.md por omissão) ou, se a pessoa o
+// configurar, de um comando seu; o único processo que arranca é esse comando (ver radar.ts).
 import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register, SessionUsage, TextProps } from 'claude-code'
 
-import type { Radar, Uso } from '../types'
+import type { Uso } from '../types'
 import { banda, painel } from './calc'
 import type { Linha, Seg } from './calc'
+import { config, falhou, lerFonte, montar } from './radar'
+import type { Config } from './radar'
 
 const PANE = 'brain'
 const LARGURA = 50 // colunas pedidas para o painel ancorado ao lado da conversa
@@ -35,54 +37,44 @@ function deMedida(u: Pick<SessionUsage, 'context' | 'rateLimits' | 'cost'>, limi
   }
 }
 
-// Fora do AI-Brain (o mod pode estar instalado para todos os projetos) não há radar: o painel e a
-// banda mostram só o uso. Variável do módulo: um reload volta a descobrir no session.start.
-let semVault = false
+const absoluto = (p: string) => /^([A-Za-z]:)?[\\/]/.test(p)
+const motivo = (err: unknown) => (err instanceof Error ? err.message : String(err))
+
+// A configuração vem das opções do manifesto. Mudar uma no /config recarrega o módulo, e o
+// register volta a correr com as novas: por isso vive no módulo e lê-se lá.
+let cfg: Config = config({})
 let aLer: Promise<void> | undefined
 
+async function caminhoFicheiro($: EngineInterface): Promise<string> {
+  return absoluto(cfg.ficheiro) ? cfg.ficheiro : `${await $.session.root()}/${cfg.ficheiro}`
+}
+
 async function lerRadar($: EngineInterface): Promise<void> {
-  const raiz = await $.session.root()
-  const script = `${raiz}/system/scripts/agenda.py`
-  if (!(await $.fs.exists(script))) {
-    semVault = true
+  const agora = await $.clock.now()
+  if (cfg.comando.length > 0) {
+    const nome = cfg.comando.join(' ')
+    try {
+      const r = await $.process.run(cfg.comando, { cwd: await $.session.root(), timeoutMs: 20_000 })
+      if (r.exitCode !== 0) throw new Error(`saiu com ${r.exitCode}: ${r.stderr.trim().slice(0, 160)}`)
+      const lido = lerFonte(r.stdout, '')
+      await update($, radar, () => montar(lido, agora, cfg.dias, nome))
+    } catch (err) {
+      await update($, radar, () => falhou(nome, motivo(err), agora, cfg.dias))
+    }
+    return
+  }
+  const caminho = await caminhoFicheiro($)
+  // Sem ficheiro não há radar: o painel diz como criar um, a banda mostra só o uso.
+  if (!(await $.fs.exists(caminho))) {
     await update($, radar, () => null)
     return
   }
-  semVault = false
-  const agora = await $.clock.now()
-  // A mesma ordem que o session-start.js: o venv da máquina; sem ele, o agenda.py só precisa
-  // de pyyaml, e o python do sistema chega.
-  const pythons: string[] = []
-  for (const p of [`${raiz}/system/.venv/Scripts/python.exe`, `${raiz}/system/.venv/bin/python`]) {
-    if (await $.fs.exists(p)) pythons.push(p)
+  try {
+    const lido = lerFonte(await $.fs.read(caminho), cfg.ficheiro)
+    await update($, radar, () => montar(lido, agora, cfg.dias, cfg.ficheiro))
+  } catch (err) {
+    await update($, radar, () => falhou(cfg.ficheiro, motivo(err), agora, cfg.dias))
   }
-  pythons.push('python3', 'python')
-  let falha = 'nenhum python encontrado'
-  for (const py of pythons) {
-    try {
-      const r = await $.process.run([py, script, '--json'], { cwd: raiz, timeoutMs: 20_000 })
-      if (r.exitCode !== 0) {
-        falha = `${py} saiu com ${r.exitCode}: ${r.stderr.trim().slice(0, 160)}`
-        continue
-      }
-      const dados = JSON.parse(r.stdout) as Omit<Radar, 'lidoEm'>
-      await update($, radar, () => ({ ...dados, lidoEm: agora }))
-      return
-    } catch (err) {
-      falha = `${py}: ${err instanceof Error ? err.message : String(err)}`
-    }
-  }
-  // Silêncio não pode significar duas coisas: um radar que não correu diz que não correu.
-  await update($, radar, () => ({
-    hoje: '',
-    janela_dias: 0,
-    prazos: [],
-    sem_data: [],
-    por_espelhar: [],
-    sem_avaliacao: [],
-    falha,
-    lidoEm: agora,
-  }))
 }
 
 function refrescarRadar($: EngineInterface): Promise<void> {
@@ -92,7 +84,7 @@ function refrescarRadar($: EngineInterface): Promise<void> {
   return aLer
 }
 
-/** No fim de cada turno: o ritmo do contexto, e o radar se estiver velho ou o YAML mudou. */
+/** No fim de cada turno: o ritmo do contexto, e o radar se estiver velho ou o ficheiro mudou. */
 async function fimDeTurno($: EngineInterface): Promise<void> {
   const u = await $.session.usage({ breakdown: 'summary' }) // estimado localmente, sem pedidos
   const b = u.context.breakdown
@@ -101,14 +93,13 @@ async function fimDeTurno($: EngineInterface): Promise<void> {
   const tokens = u.context.tokens
   if (tokens !== undefined) await update($, amostras, s => [...s, tokens].slice(-24))
 
-  if (semVault) return
   const r = await read($, radar)
   const agora = await $.clock.now()
   let velho = !r || agora - r.lidoEm > RADAR_MS
-  if (!velho && r) {
-    const yaml = `${await $.session.root()}/personal/academic-deadlines.yaml`
-    const st = await $.fs.stat(yaml).catch(() => undefined)
-    velho = st !== undefined && st.mtimeMs > r.lidoEm
+  if (!velho && r && cfg.comando.length === 0) {
+    // Um ficheiro editado (ou apagado) a meio da sessão vê-se no turno seguinte.
+    const st = await $.fs.stat(await caminhoFicheiro($)).catch(() => undefined)
+    velho = st === undefined || st.mtimeMs > r.lidoEm
   }
   if (velho) void refrescarRadar($)
 }
@@ -121,22 +112,24 @@ async function recomecar($: EngineInterface): Promise<void> {
 
 /**
  * Abre o painel. Sem ser a pessoa a pedir, só tem lugar num terminal largo (>= 144 colunas; 110
- * depois de o abrir à mão uma vez) — e quando não cabe, o motor deixa-o à espera em silêncio. Foi
- * assim que a primeira instalação pareceu "não ficar" (11 out 2026): diz-se sempre porquê.
+ * depois de o abrir à mão uma vez) — e quando não cabe, o motor deixa-o à espera em silêncio.
+ * Diz-se sempre porquê.
  */
 async function abrir($: EngineInterface): Promise<void> {
-  const r = await $.ui.open({ id: PANE, title: 'AI-Brain', columns: LARGURA })
+  const r = await $.ui.open({ id: PANE, title: 'brain-dash', columns: LARGURA })
   await update($, aberto, () => r.isPlaced)
   if (!r.isPlaced) {
     $.ui.toast(`brain-dash: o painel não coube (${r.reason}). /brain abre-o já; ao lado do código precisa de /tui fullscreen.`)
   }
 }
 
-export const register: Register = on => {
+export const register: Register = (on, options) => {
+  cfg = config(options)
+
   on('session.start', async ($, e, next) => {
     await $.command.register({
       name: 'brain',
-      description: 'AI-Brain: painel ao lado do código com contexto, limites com projeção e radar de prazos',
+      description: 'brain-dash: painel ao lado do código com contexto, limites com projeção e radar de prazos',
     })
     $.clock.every(RADAR_MS, () => void refrescarRadar($))
     // As barras de tempo e as projeções andam com o relógio: redesenhar a cada minuto.
@@ -163,8 +156,8 @@ export const register: Register = on => {
 
   on('turn.complete', async ($, e, next) => {
     const fim = await next(e)
-    // Os turnos dos subagentes (os workers do `orquestrar`) também acabam aqui: não são ritmo
-    // da conversa principal, e o contexto que o $.session.usage() mede é o dela.
+    // Os turnos dos subagentes também acabam aqui: não são ritmo da conversa principal, e o
+    // contexto que o $.session.usage() mede é o dela.
     if (!e.agentId) await fimDeTurno($)
 
     return fim
@@ -190,7 +183,7 @@ export const register: Register = on => {
   })
 
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
-    // A banda é partilhada (o you-should-know também escreve aqui): o que os de baixo desenham fica.
+    // A banda é partilhada com outros mods: o que os de baixo desenham fica.
     const deles = await next(e)
     if (e.props.hasSurvey || (await read($, aberto))) return deles
     const segs = banda(await read($, uso), await read($, amostras), await read($, radar), await $.clock.now())
@@ -219,6 +212,7 @@ export const register: Register = on => {
       await read($, radar),
       await $.clock.now(),
       Math.max(20, e.props.bodyColumns),
+      cfg.ficheiro,
     )
     // Props só as que existem: um `color: undefined` não é o mesmo que não ter cor.
     const seg = (s: Seg) => {

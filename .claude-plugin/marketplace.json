@@ -8,7 +8,7 @@
     {
       "name": "brain-dash",
       "source": "./brain-dash",
-      "description": "Context and plan usage limits with a burn-rate projection, plus an optional deadline radar, in a side pane and above the prompt"
+      "description": "Context and plan usage limits with a burn-rate projection, plus a deadline radar from a plain file or your own command, in a side pane and above the prompt"
     }
   ]
 }

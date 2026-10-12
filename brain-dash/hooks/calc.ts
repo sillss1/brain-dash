@@ -1,5 +1,5 @@
 // Lógica pura do brain-dash: projeções, a banda acima do prompt e o painel ao lado do código.
-// Sem `$`, para os testes a poderem chamar diretamente.
+// Sem `$`, para os testes a poderem chamar diretamente. De onde vêm os prazos é o radar.ts.
 import type { Radar, Uso } from '../types'
 
 export const JANELAS: Record<string, { nome: string; ms: number }> = {
@@ -236,7 +236,7 @@ function blocoRadar(r: Radar, agora: number, w: number): Fila[] {
       [{ t: 'RADAR FALHOU', cor: 'error', bold: true }],
       [{ t: r.falha, cor: 'error' }],
       [{ t: 'Não assumas que não há prazos.', bold: true }],
-      [{ t: 'python system/scripts/agenda.py --json', dim: true }],
+      [{ t: `fonte: ${r.fonte}`, dim: true }],
     ]
   }
   const dias = calendario(r, r.janela_dias || 21)
@@ -258,21 +258,37 @@ function blocoRadar(r: Radar, agora: number, w: number): Fila[] {
   }
   if (r.prazos.length === 0) filas.push([{ t: `Nada nos próximos ${r.janela_dias} dias.`, dim: true }])
   if (r.sem_data.length) filas.push([{ t: '⚑ sem data: ', cor: 'warning', bold: true }, { t: r.sem_data.join(' · ') }])
-  if (r.por_espelhar.length) {
-    filas.push([
-      { t: `⚑ ${r.por_espelhar.length} por espelhar para o YAML`, cor: 'warning' },
-      { t: ' (confirmar antes de copiar)', dim: true },
-    ])
-  }
-  if (r.sem_avaliacao.length) filas.push([{ t: '⚑ sem avaliação: ', cor: 'warning' }, { t: r.sem_avaliacao.join(', ') }])
+  for (const a of r.avisos) filas.push([{ t: '⚑ ', cor: 'warning' }, { t: a }])
+  filas.push([], [{ t: `fonte: ${r.fonte}`, dim: true }])
   return filas
 }
 
-/** O painel inteiro, fila a fila, para `w` colunas. Uma fila vazia é uma linha em branco. */
-export function painel(u: Uso | null, serie: readonly number[], r: Radar | null, agora: number, w: number): Fila[] {
+/** Sem fonte de prazos: diz como ter uma, em vez de deixar o lugar vazio. */
+function semRadar(ficheiro: string): Fila[] {
+  return [
+    [{ t: 'RADAR', bold: true }],
+    [{ t: `Sem prazos: cria ${ficheiro} na raiz do projeto,`, dim: true }],
+    [{ t: 'uma linha por prazo (! no fim = crítico):', dim: true }],
+    [{ t: '  2026-10-15 Entregar o relatório !', cor: 'suggestion' }],
+    [{ t: 'ou aponta radar_command para um script teu.', dim: true }],
+  ]
+}
+
+/**
+ * O painel inteiro, fila a fila, para `w` colunas. Uma fila vazia é uma linha em branco.
+ * `ficheiro` é o nome que a dica sugere quando não há radar.
+ */
+export function painel(
+  u: Uso | null,
+  serie: readonly number[],
+  r: Radar | null,
+  agora: number,
+  w: number,
+  ficheiro = 'DEADLINES.md',
+): Fila[] {
   const d = new Date(agora)
   const relogio = `${DIAS[d.getDay()]} ${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')} ${hora(agora, agora)}`
-  const filas: Fila[] = [titulo({ t: 'AI-BRAIN', cor: 'claude', bold: true }, { t: relogio, dim: true }, w), []]
+  const filas: Fila[] = [titulo({ t: 'BRAIN-DASH', cor: 'claude', bold: true }, { t: relogio, dim: true }, w), []]
   if (u?.tokens !== undefined) filas.push(...blocoContexto(u, serie, w), [])
   for (const l of u?.limites ?? []) {
     const j = JANELAS[l.kind]
@@ -283,7 +299,6 @@ export function painel(u: Uso | null, serie: readonly number[], r: Radar | null,
   if (u?.usd !== undefined) {
     filas.push([{ t: `sessão ${u.usd.toFixed(2)} $ equiv. API (na subscrição é quota)`, dim: true }], [])
   }
-  if (r) filas.push(...blocoRadar(r, agora, w))
-  else filas.push([{ t: 'Fora do AI-Brain: sem radar.', dim: true }])
+  filas.push(...(r ? blocoRadar(r, agora, w) : semRadar(ficheiro)))
   return filas
 }
