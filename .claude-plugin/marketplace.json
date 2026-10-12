@@ -1,0 +1,14 @@
+{
+  "name": "sillss1",
+  "owner": {
+    "name": "Francisco Antunes"
+  },
+  "description": "Claude Code mods by sillss1",
+  "plugins": [
+    {
+      "name": "brain-dash",
+      "source": "./brain-dash",
+      "description": "Context and plan usage limits with a burn-rate projection, plus an optional deadline radar, in a side pane and above the prompt"
+    }
+  ]
+}

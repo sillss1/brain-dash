@@ -1,0 +1,7 @@
+{
+  "name": "brain-dash",
+  "version": "0.1.0",
+  "description": "AI-Brain: contexto e limites de uso com projeção, e o radar de prazos do agenda.py, acima do prompt e em /brain",
+  "author": { "name": "Francisco Antunes" },
+  "types": "./types/index.d.ts"
+}
