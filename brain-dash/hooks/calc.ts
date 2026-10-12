@@ -222,9 +222,9 @@ function blocoJanela(l: { pct: number; reset?: number }, nome: string, ms: numbe
     { t: num(l.pct), cor, bold: true },
   ])
   if (p.projetado !== undefined) {
-    const linha: Fila = [{ t: `      ▒ at reset, at the average pace: ${Math.round(p.projetado)}%`, dim: true }]
-    if (p.esgotaEm !== undefined) linha.push({ t: ` · runs out ~${hora(p.esgotaEm, agora)}`, cor: 'error', bold: true })
-    filas.push(linha)
+    filas.push([{ t: `      ▒ at reset, at this pace: ${Math.round(p.projetado)}%`, dim: true }])
+    // Numa linha própria: junto à projeção não cabia nas 50 colunas e ficava cortado (12 out 2026).
+    if (p.esgotaEm !== undefined) filas.push([{ t: `      runs out ~${hora(p.esgotaEm, agora)}`, cor: 'error', bold: true }])
   } else {
     filas.push([{ t: '      too early in the window to project', dim: true }])
   }

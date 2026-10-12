@@ -162,6 +162,25 @@ test('the pane keeps overdue items, undated critical ones, warnings and the sour
   expect(tudo).toContain('source: DEADLINES.md')
 })
 
+test('no row of the pane is wider than the pane, even when a window runs out', () => {
+  // Found in a real session: "runs out" next to the projection was cut off at 50 columns.
+  const uso = {
+    tokens: 412_000,
+    janela: 1_000_000,
+    pct: 41,
+    limiar: 800_000,
+    limites: [
+      { kind: 'five_hour', pct: 49, reset: AGORA + 3.8 * H },
+      { kind: 'seven_day', pct: 33, reset: AGORA + 4.6 * 24 * H },
+    ],
+    usd: 0,
+  }
+  const filas = painel(uso, [300_000, 350_000, 412_000], RADAR, AGORA, 50)
+  const tudo = filas.map(texto)
+  expect(tudo.filter(l => [...l].length > 50)).toEqual([])
+  expect(tudo.some(l => /^ {6}runs out ~/.test(l))).toBe(true)
+})
+
 test('with no deadline source, the pane explains how to add one', () => {
   const tudo = painel(null, [], null, AGORA, 50, 'todo.md').map(texto).join('\n')
   expect(tudo).toContain('create todo.md')

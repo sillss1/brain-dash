@@ -1,6 +1,6 @@
 {
   "name": "brain-dash",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Context and plan limits with a burn-rate projection, plus a deadline radar from a plain file or your own command, beside the code and above the prompt",
   "author": { "name": "Francisco Antunes" },
   "homepage": "https://github.com/sillss1/brain-dash",

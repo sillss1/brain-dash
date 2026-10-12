@@ -208,7 +208,7 @@ check this yourself.
 │   ├── hooks/calc.ts                 projections and drawing (pure)
 │   ├── hooks/radar.ts                deadline sources and parsing (pure)
 │   ├── types/index.d.ts              the state contract
-│   └── tests/register.test.ts        23 tests
+│   └── tests/register.test.ts        24 tests
 └── docs/render.ts                    regenerates the images in this README
 ```
 
